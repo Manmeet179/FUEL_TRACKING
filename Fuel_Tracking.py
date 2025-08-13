@@ -169,7 +169,7 @@ def login_section():
         if user and user["password_hash"] and bcrypt.checkpw(password.encode(), user["password_hash"].encode()):
             st.session_state.logged_in = True
             st.session_state.username = user["name"]
-            st.rerun()
+            st.experimental_rerun()
         else:
             st.error("Invalid email or password ❌")
 
@@ -229,28 +229,30 @@ def main_app():
     st.subheader(f"Summary for {name} - {datetime.today().strftime('%b %Y')}")
     st.write("Petrol Conveyance: ₹4 / KM (2-Wheeler)")
 
-    st.write("### Entries")
     df = st.session_state.df_data
 
+    # Display table with Edit/Delete buttons vertically aligned per row
     for idx, row in df.iterrows():
-        cols = st.columns([1, 2, 3, 3, 1, 1, 1])
-        cols[0].write(row["Sr"])
-        cols[1].write(row["Date"])
-        cols[2].write(row["Particulars - Travelling Details"])
-        cols[3].write(row["Purpose"])
-        cols[4].write(row["KMS"])
+        st.markdown(f"**Sr:** {row['Sr']}")
+        st.markdown(f"**Date:** {row['Date']}")
+        st.markdown(f"**Particulars - Travelling Details:** {row['Particulars - Travelling Details']}")
+        st.markdown(f"**Purpose:** {row['Purpose']}")
+        st.markdown(f"**KMS:** {row['KMS']}")
+        st.markdown(f"**Total INR:** ₹{row['Total INR']}")
 
-        if cols[5].button("✏️ Edit", key=f"edit_{idx}"):
+        cols = st.columns([1,1])
+        if cols[0].button("✏️ Edit", key=f"edit_{idx}"):
             st.session_state.edit_index = idx
             st.session_state.show_edit = True
-            st.rerun()
-
-        if cols[6].button("🗑️ Delete", key=f"delete_{idx}"):
+            st.experimental_rerun()
+        if cols[1].button("🗑️ Delete", key=f"delete_{idx}"):
             st.session_state.delete_index = idx
             st.session_state.show_delete_confirm = True
-            st.rerun()
+            st.experimental_rerun()
 
-    # Edit form with multiple fields
+        st.markdown("---")
+
+    # Edit form
     if st.session_state.show_edit:
         idx = st.session_state.edit_index
         row = df.loc[idx]
@@ -260,9 +262,6 @@ def main_app():
         with st.form("edit_form_multi"):
             col_date, col_total_km, col_home_km = st.columns(3)
             new_date = col_date.text_input("Date (e.g. 15-Aug)", value=row["Date"])
-            # Calculate Total KM before home office KM as original input
-            # Total KM entered = travel KM + home office km
-            # So total km = row['KMS'] + home_office_km_dict[name]
             old_home_km = home_office_km_dict.get(name, 0)
             new_total_km = col_total_km.number_input(
                 "Total KM (Today's travel)",
@@ -284,11 +283,9 @@ def main_app():
             cancelled = st.form_submit_button("Cancel")
 
             if submitted:
-                # Calculate travel KM and INR again
                 travel_km = max(new_total_km - new_home_km, 0)
                 total_inr = travel_km * 4
 
-                # Update df
                 df.at[idx, "Date"] = new_date
                 df.at[idx, "Particulars - Travelling Details"] = particulars_input
                 df.at[idx, "Purpose"] = purpose_input
@@ -299,11 +296,11 @@ def main_app():
                 st.session_state.df_data = df
                 st.success("✅ Entry updated!")
                 st.session_state.show_edit = False
-                st.rerun()
+                st.experimental_rerun()
 
             elif cancelled:
                 st.session_state.show_edit = False
-                st.rerun()
+                st.experimental_rerun()
 
     # Delete confirmation popup
     if st.session_state.show_delete_confirm:
@@ -317,10 +314,10 @@ def main_app():
             st.session_state.df_data = df
             st.session_state.show_delete_confirm = False
             st.success("✅ Entry deleted!")
-            st.rerun()
+            st.experimental_rerun()
         if col_no.button("No, Cancel"):
             st.session_state.show_delete_confirm = False
-            st.rerun()
+            st.experimental_rerun()
 
     total_km_sum = df["KMS"].sum()
     total_inr_sum = df["Total INR"].sum()
@@ -352,7 +349,7 @@ if st.session_state.logged_in:
         st.session_state.df_data = pd.DataFrame(
             columns=["Sr", "Date", "Particulars - Travelling Details", "Purpose", "KMS", "Total INR"]
         )
-        st.rerun()
+        st.experimental_rerun()
 
 # ====== APP ENTRY POINT ======
 if not st.session_state.logged_in:
