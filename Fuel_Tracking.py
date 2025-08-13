@@ -23,8 +23,8 @@ load_dotenv()
 
 # ====== CONFIG ======
 allowed_users = {
-    os.getenv("USER1_EMAIL"): {
-        "name": os.getenv("USER1_NAME"),
+    os.getenv("USER1_NAME"): {
+        "name": os.getenv("USER1_EMAIL"),
         "password_hash": os.getenv("USER1_HASH")
     },
     os.getenv("USER2_EMAIL"): {
@@ -169,7 +169,7 @@ def login_section():
         if user and user["password_hash"] and bcrypt.checkpw(password.encode(), user["password_hash"].encode()):
             st.session_state.logged_in = True
             st.session_state.username = user["name"]
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("Invalid email or password ❌")
 
@@ -248,7 +248,7 @@ def main_app():
         if cols[1].button("🗑️ Delete", key=f"delete_{idx}"):
             st.session_state.delete_index = idx
             st.session_state.show_delete_confirm = True
-            st.experimental_rerun()
+            st.rerun()
 
         st.markdown("---")
 
@@ -296,11 +296,11 @@ def main_app():
                 st.session_state.df_data = df
                 st.success("✅ Entry updated!")
                 st.session_state.show_edit = False
-                st.experimental_rerun()
+                st.rerun()
 
             elif cancelled:
                 st.session_state.show_edit = False
-                st.experimental_rerun()
+                st.rerun()
 
     # Delete confirmation popup
     if st.session_state.show_delete_confirm:
@@ -349,10 +349,11 @@ if st.session_state.logged_in:
         st.session_state.df_data = pd.DataFrame(
             columns=["Sr", "Date", "Particulars - Travelling Details", "Purpose", "KMS", "Total INR"]
         )
-        st.experimental_rerun()
+        st.rerun()
 
 # ====== APP ENTRY POINT ======
 if not st.session_state.logged_in:
     login_section()
 else:
     main_app()
+
